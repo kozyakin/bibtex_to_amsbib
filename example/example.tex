@@ -1,0 +1,216 @@
+% !Mode:: "TeX:UTF-8"
+%
+% The WinEdt Pragma Comments below cause pdflatex + bibtexu commands
+% to be executed when PDFTeXify is invoked.
+%-------------------------------------------------------------------
+% !PDFTeXify engine = pdflatex
+% !BIB Exe = bibtexu
+% !BIB Opt = -H -l ru -o ru
+%-------------------------------------------------------------------
+% You may also process this file in EVERY system with ARARA by running
+% the following command in cmd/terminal: arara <this file>
+%
+% arara: clean: { extensions: [ aux, bbl, bcf, blg, out, log, run.xml, synctex, synctex.gz, toc ] }
+% arara: pdflatex: {draft: yes, shell: yes}
+% arara: biber if exists('bcf')
+% arara: bibtexu: {options: ['-H', '-l', 'ru', '-o', 'ru']} if found('aux','bibdata') && !exists('bcf')
+% arara: pdflatex: {shell: yes, synctex: yes}
+% arara: --> until !found('log', '\\(?(R|r)e\\)?run (to get|LaTeX)')
+% arara: clean: { extensions: [ aux, bbl, bcf, blg, out, log, run.xml, synctex, synctex.gz, toc ] }
+%
+\documentclass[a4paper]{article}
+\usepackage[T1,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{a4wide}
+\usepackage{amsmath,amssymb}
+\usepackage[hyper]{amsbib}
+
+\usepackage{fancyvrb}
+
+\title{Преобразование библиографии из формата Bib\TeX{} в формат AMSBIB}
+
+\author{В.\,С. Козякин\thanks{Институт проблем передачи информации им.
+А.\,А.~Харкевича РАН, 127051 Москва, Большой Каретный переулок,~19, стр.~1,
+e-mail: \href{mailto:kozyakin@iitp.ru}{kozyakin@iitp.ru}}}
+%\date{}
+
+\begin{document}
+\maketitle
+
+При подготовке рукописей для публикации в подавляющем числе (более 150-и) российских журналов математической направленности портал \href{https://www.mathnet.ru/}{Math-Net.Ru} рекомендует оформлять библиографию в стиле \href{https://www.mathnet.ru/poffice/amsbibpackage.phtml?wshow=amsbibpackage&option_lang=rus}{AMSBIB}.
+
+В случае использования в библиографии ссылок на публикации в русскоязычных журналах, индексированных в Math-Net.Ru, особой проблемы при этом не возникает --- соответствующие библиографические записи в формате AMSBIB могут быть скопированы с соответствующих страниц публикаций на сайте \href{https://www.mathnet.ru/}{Math-Net.Ru}. Хуже обстоит дело со ссылками на англоязычные публикациии, большинство из которых не индексируется на сайте Math-Net.Ru, и для которых, соответственно, библиографическая информация в формате AMSBIB, как правило, отсутствует. В этом случае приходится вручную составлять соответствующие библиографические записи в формате AMSBIB, используя широко доступные (например, на сайте \href{https://mathscinet.ams.org/mrlookup}{MR Lookup}, на сайтах журналов или на многочисленных библиографических интернет-сервисах) соответствующие библиографические записи в формате Bib\TeX. 
+
+К сожалению, между полями библиографических записей в форматах AMSBIB и Bib\TeX{} нет однозначного соответствия, поэтому процесс перевода записей одного формата в другой становится ``творческим''. Если такую процедуру требуется проделать для одной-двух публикаций, особых проблем не возникает. Но когда требуется перевести из формата Bib\TeX{} в AMSBIB достаточно большое количество библиографических записей (например, при подготовке обзора или монографии), задача становится малоприятной, не говоря уж о том, что ручной перевод чреват большим количеством ошибок, а также сильно зависит от ``творчества'' конкретного автора.
+
+Чтобы упростить и унифицировать процесс преобразования библиографии из формата Bib\TeX{} в формат AMSBIB, мной были созданы стилевые файлы \texttt{amsbib.bst} и \texttt{amsbibs.bst}, осуществляющие такое преобразование автоматически. Причем, первый из этих стилевых файлов создает список библиографических записей AMSBIB в порядке цитирования публикаций в работе, а второй --- в алфавитном порядке. 
+
+Пример такого преобразования приводится в листинге ниже, а его результат --- в конце данной работы: 
+\begin{Verbatim}[frame=lines,fontsize=\small,label=Фрагмент tex-файла примера,framesep=12pt]
+\documentclass[a4paper]{article}
+\usepackage[T1,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage[hyper]{amsbib}
+......................................
+...дополнительные команды преамбулы...
+......................................
+\title{....}
+\author{....}
+
+\begin{document}
+\maketitle
+......................................
+...........текст публикации...........
+......................................
+\nocite{*}
+
+\bibliographystyle{amsbib}
+\bibliography{example}
+\end{document} 
+\end{Verbatim}
+
+При этом сама библиография (созданная с помощью пакета \texttt{amsbib.sty}) как вставляется в pdf-файл, создаваемый при трансляции tex-файла, так и помещается в файл \texttt{<имя файла>.bbl}, генерируемый при трансляции tex-файла.
+
+Подчеркнем, что при этом как файл библиографии \texttt{.bib}, так и использующий его tex-файл должны быть в одной кодировке. Например, в данной работе использовалась кодировка \texttt{utf8}. При этом, в случае использования кодировок \texttt{cp866} или \texttt{cp1251}, для обработки библиографии должна применяться программа \texttt{bibtex8}, а при использования кодировки \texttt{utf8} --- программа \texttt{bibtexu}.
+
+Предлагаемые стилевые файлы \texttt{amsbib.bst} и \texttt{amsbibs.bst} далеки от совершенства --- это лишь первая попытка в данном направлении. Поэтому \textbf{рекомендуется полученный в результате список библиографических записей в формате AMSBIB тщательно проверить и, при необходимости, откорректировать вручную.}
+
+\sloppy Cтилевые файлы \texttt{amsbib.bst} и \texttt{amsbibs.bst} и файлы примеров \texttt{example.tex} и \texttt{\detokenize{example_en.tex}} могут быть загружены со страницы \href{https://github.com/kozyakin/kozyakin.github.io/tree/main/bibtex_to_amsbib}{BibTeX to AMSBIB} моего репозитария GitHub~Pages \href{https://kozyakin.github.io/}{kozyakin.github.io}. Необходимые для трансляции примеров файлы пакета AMSBIB (\texttt{amsbib.sty} + \texttt{*.pdf}) позаимствованы из \href{https://www.mathnet.ru/poffice/amsbib.zip}{amsbib.zip}.
+\bigskip
+
+Ниже приводится фрагмент базы данных \texttt{amsbib.bib} библиографии в формате Bib\TeX{}, использованной в данном примере:
+
+\begin{Verbatim}[frame=lines,fontsize=\small,label=Фрагмент базы данных BibTeX amsbib.bib,framesep=12pt]
+@ARTICLE{BKK:IEEETNN96,
+ author        = "Bhaya, Amit and Kaszkurewicz, Eugenius and Kozyakin, V. S.",
+ title         = "Existence and stability of a unique equilibrium in
+                  continuous-valued discrete-time asynchronous {H}opfield
+                  neural networks",
+ journal       = "IEEE Trans. Neural Netw.",
+ fjournal      = "IEEE Transactions on Neural Networks",
+ year          = "1996",
+ volume        = "7",
+ number        = "3",
+ pages         = "620--628",
+ month         = may,
+ issn          = "1045-9227",
+ doi           = "10.1109/72.501720",
+ url           = "https://ieeexplore.ieee.org/document/501720",
+ language      = "english",
+}
+
+@ARTICLE{ChadKra:APM2:97,
+ author        = "Ch{\k{a}}dzy{\'n}ski, Jacek and Krasi{\'n}ski, Tadeusz",
+ title         = "A set on which the {{\L}}ojasiewicz exponent at infinity is
+                  attained",
+ journal       = "Ann. Polon. Math.",
+ fjournal      = "Annales Polonici Mathematici",
+ year          = "1997",
+ volume        = "67",
+ number        = "2",
+ pages         = "191--197",
+ eprinttype    = "arXiv",
+ eprint        = "math/9802064",
+ coden         = "APNMA4",
+ issn          = "0066-2216",
+ mrclass       = "14E05",
+ mrnumber      = "1460600 (98j:14013)",
+ mrreviewer    = "Zbigniew Jelonek",
+ language      = "english",
+}
+
+.......................................................
+
+@BOOK{AizGant:r,
+ author        = "Айзерман, М. А. and Гантмахер, Ф. Р.",
+ title         = "Абсолютная устойчивость регулируемых систем",
+ publisher     = "Изд-во АН СССР",
+ address       = "М.",
+ year          = "1963",
+ pagetotal     = "140",
+ language      = "russian",
+}
+
+@ARTICLE{Anosov:PSIM67:r,
+ author        = "Аносов, Д. В.",
+ title         = "Геодезические потоки на замкнутых римановых многообразиях
+                  отрицательной кривизны",
+ journal       = "Тр. МИАН",
+ fjournal      = "Труды Математического института имени В. А. Стеклова",
+ year          = "1967",
+ volume        = "90",
+ pages         = "3--209",
+ url           = "https://mi.mathnet.ru/tm2795",
+ language      = "russian",
+}
+
+........................................................
+\end{Verbatim}
+\bigskip
+
+Далее приводится фрагмент файла \texttt{example.bbl}, сгенерированного в результате конвертации и содержащего базу данных библиографии в формате AMSBIB:
+
+\begin{Verbatim}[frame=lines,fontsize=\small,label=Фрагмент полученного файла example.bbl базы данных AMSBIB,framesep=12pt]
+\begin{thebibliography}{10}
+% \bib, bibdiv, biblist are defined by the amsrefs package.
+
+\Bibitem{BKK:IEEETNN96}
+\by A.~Bhaya, E.~Kaszkurewicz, V.~S.~Kozyakin
+\paper  Existence and stability of a unique equilibrium in continuous-valued
+  discrete-time asynchronous {H}opfield neural networks
+\jour IEEE Trans. Neural Netw.
+\yr 1996
+\vol 7
+\issue 3
+\monthissue May
+\pages 620--628
+\crossref{https://dx.doi.org/10.1109/72.501720}
+\elink{\url{ https://ieeexplore.ieee.org/document/501720}}
+
+\Bibitem{ChadKra:APM2:97}
+\by J.~Ch{\k{a}}dzy{\'n}ski, T.~Krasi{\'n}ski
+\paper  A set on which the {{\L}}ojasiewicz exponent at infinity is attained
+\jour Ann. Polon. Math.
+\yr 1997
+\vol 67
+\issue 2
+\pages 191--197
+\arxiv \href{http://arXiv.org/abs/math/9802064}{\allowbreak
+  math/9802064}\miscnote
+\mathscinet{https://www.ams.org/mathscinet-getitem?mr=1460600}
+
+.......................................................
+
+\RBibitem{AizGant:r}
+\by М.~А.~Айзерман, Ф.~Р.~Гантмахер
+\book Абсолютная устойчивость регулируемых
+  систем
+\yr 1963
+\publ Изд-во АН СССР
+\publaddr М.
+\totalpages 140
+
+\RBibitem{Anosov:PSIM67:r}
+\by Д.~В.~Аносов
+\paper  Геодезические потоки на замкнутых
+  римановых многообразиях отрицательной
+  кривизны
+\jour Тр. МИАН
+\yr 1967
+\vol 90
+\pages 3--209
+\mathnet{https://mi.mathnet.ru/tm2795}
+
+........................................................
+
+\end{thebibliography}
+\end{Verbatim}
+
+\fussy\nocite{*}
+
+\bibliographystyle{amsbib}
+\bibliography{example}
+\end{document} 
